@@ -505,7 +505,7 @@
     
     // Chart.js configuration
     Chart.defaults.font.family = 'Inter, sans-serif';
-    Chart.defaults.color = '#334155'; // slate-700
+    Chart.defaults.color = '#14b56d'; // slate-700
 
     function createBarChart(canvasId, label, labels, data, backgroundColor, borderColor) {
         const ctx = document.getElementById(canvasId).getContext('2d');
@@ -527,18 +527,18 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: { color: '#475569' }, // slate-600
+                        ticks: { color: '#5c3850' }, // slate-600
                         grid: { color: '#e2e8f0' } // slate-200
                     },
                     x: {
-                        ticks: { color: '#475569' },
+                        ticks: { color: '#5c3850' },
                         grid: { display: false }
                     }
                 },
                 plugins: {
                     legend: {
                         display: true,
-                        labels: { color: '#334155' } // slate-700
+                        labels: { color: '#f24a02' } // slate-700
                     },
                     tooltip: {
                         backgroundColor: 'rgba(0, 0, 0, 0.7)',
