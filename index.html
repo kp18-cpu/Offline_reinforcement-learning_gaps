@@ -24,7 +24,7 @@
         .table-responsive { display: block; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 pb-20">
+<body class="bg-slate-100 text-slate-800">
 
     <header class="bg-sky-700 text-white shadow-lg sticky top-0 z-50">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -427,7 +427,7 @@
         </section>
     </main>
 
-    <footer class="bg-sky-700 text-white py-4 text-center fixed bottom-0 w-full z-40">
+    <footer class="bg-sky-700 text-white mt-12 py-8 text-center">
         <p class="text-sm">&copy; 2024 Interactive Report on Offline RL Security. Based on research insights.</p>
         <p class="text-xs mt-1">This SPA is for illustrative and educational purposes.</p>
     </footer>
@@ -505,7 +505,7 @@
     
     // Chart.js configuration
     Chart.defaults.font.family = 'Inter, sans-serif';
-    Chart.defaults.color = '#14b56d'; // slate-700
+    Chart.defaults.color = '#334155'; // slate-700
 
     function createBarChart(canvasId, label, labels, data, backgroundColor, borderColor) {
         const ctx = document.getElementById(canvasId).getContext('2d');
@@ -527,18 +527,18 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: { color: '#5c3850' }, // slate-600
+                        ticks: { color: '#475569' }, // slate-600
                         grid: { color: '#e2e8f0' } // slate-200
                     },
                     x: {
-                        ticks: { color: '#5c3850' },
+                        ticks: { color: '#475569' },
                         grid: { display: false }
                     }
                 },
                 plugins: {
                     legend: {
                         display: true,
-                        labels: { color: '#f24a02' } // slate-700
+                        labels: { color: '#334155' } // slate-700
                     },
                     tooltip: {
                         backgroundColor: 'rgba(0, 0, 0, 0.7)',
