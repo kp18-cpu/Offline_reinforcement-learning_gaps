@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-T-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Report: Offline RL Security</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Visualization & Content Choices: 
+        1. Fundamentals (Report Sec 1): Text in accordions (1.1-1.4). Goal: Inform basics. Interaction: Expand/collapse. Justification: Manages text. Method: HTML/JS.
+        2. Threats (Report Sec 2): Text in accordions (2.1-2.4), HTML Table 1, Bar Chart (Attack Categories). Goal: Inform/Compare attacks. Interaction: Accordions, Chart tooltips. Justification: Detail, structured summary, visual overview. Method: HTML/JS, Chart.js.
+        3. Defenses (Report Sec 3): Text in accordions (3.1-3.4), HTML Table 2, Bar Chart (Defense Categories). Goal: Inform/Compare defenses. Interaction: Accordions, Chart tooltips. Justification: Detail, structured summary, visual overview. Method: HTML/JS, Chart.js.
+        4. Research & Outlook (Report Sec 4-5): Text in accordions/sections (4.1-4.2, 5.1-5.3), structured list for gaps. Goal: Inform future/summarize. Interaction: Accordions. Justification: Clarity on future work. Method: HTML/JS.
+    -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 300px; max-height: 400px; }
+        @media (min-width: 768px) { .chart-container { height: 350px; } }
+        /* Tailwind's Inter font is usually loaded by default with Tailwind Play, but for self-hosting:
+           @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'); */
+        .table-responsive { display: block; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800">
+
+    <header class="bg-sky-700 text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <h1 class="text-xl sm:text-2xl font-bold">Offline RL: Security Insights</h1>
+                <nav class="hidden md:flex space-x-4">
+                    <button data-target="fundamentals" class="nav-btn px-3 py-2 rounded-md text-sm font-medium hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500">Fundamentals</button>
+                    <button data-target="threats" class="nav-btn px-3 py-2 rounded-md text-sm font-medium hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500">Threats</button>
+                    <button data-target="defenses" class="nav-btn px-3 py-2 rounded-md text-sm font-medium hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500">Defenses</button>
+                    <button data-target="research" class="nav-btn px-3 py-2 rounded-md text-sm font-medium hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500">Research & Outlook</button>
+                </nav>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-white hover:text-sky-200 focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden hidden bg-sky-700">
+            <nav class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <button data-target="fundamentals" class="nav-btn block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500">Fundamentals</button>
+                <button data-target="threats" class="nav-btn block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500">Threats</button>
+                <button data-target="defenses" class="nav-btn block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500">Defenses</button>
+                <button data-target="research" class="nav-btn block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-500">Research & Outlook</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <section id="fundamentals" class="content-section space-y-6">
+            <h2 class="text-3xl font-bold text-sky-700 mb-6">1. Foundations of Offline Reinforcement Learning</h2>
+            <p class="mb-6 text-lg text-slate-700">This section delves into the core principles of Offline Reinforcement Learning (RL). It explains what Offline RL is, its distinct characteristics compared to online RL, the primary motivations for its use, key methodologies, and inherent challenges such as distributional shift. Understanding these foundations is crucial for appreciating its vulnerabilities and defense mechanisms in cybersecurity contexts.</p>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <button class="accordion-toggle w-full text-left text-xl font-semibold text-sky-600 hover:text-sky-800 focus:outline-none flex justify-between items-center">
+                    <span>1.1. Defining Offline RL: Core Principles, Motivations, and Distinct Characteristics</span>
+                    <span class="accordion-icon transform transition-transform duration-300">&#9660;</span>
+                </button>
+                <div class="accordion-content mt-4 text-slate-700 space-y-3">
+                    <p>Offline Reinforcement Learning (RL), or batch RL, learns policies exclusively from a fixed, pre-collected dataset of interactions (states, actions, rewards, next states) without further environment interaction during training. This is vital where online data collection is expensive, risky, or infeasible (e.g., robotics, autonomous driving, healthcare).</p>
+                    <p><strong>Motivation:</strong> Leverage existing logged data to improve systems or automate decisions without new exploration costs/risks. It's more data-efficient and safer than online RL, which struggles with sample inefficiency and exploration perils.</p>
+                    <p><strong>Distinct Characteristic:</strong> The "static dataset" paradigm means policy quality depends entirely on this data. Biased, suboptimal, sparse, or tampered data leads to flawed policies. Data integrity is paramount and a key attack surface.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <button class="accordion-toggle w-full text-left text-xl font-semibold text-sky-600 hover:text-sky-800 focus:outline-none flex justify-between items-center">
+                    <span>1.2. Key Methodologies and Algorithmic Paradigms in Offline RL</span>
+                    <span class="accordion-icon transform transition-transform duration-300">&#9660;</span>
+                </button>
+                <div class="accordion-content mt-4 text-slate-700 space-y-3">
+                    <p>Methodologies address distributional shift (mismatch between behavior policy and learned policy distributions) and inability to correct errors online:</p>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><strong>Policy Constraint Methods:</strong> Constrain learned policy near the behavior policy (e.g., BC terms, KL/MMD divergence constraints) to avoid unreliable value estimates for unsupported actions.</li>
+                        <li><strong>Value Regularization Methods:</strong> Modify value function learning for conservatism, penalizing out-of-distribution (OOD) action values to get pessimistic estimates.</li>
+                        <li><strong>Model-Based Methods:</strong> Learn an environment model from data, then optimize policy using simulated rollouts, often with uncertainty quantification to penalize venturing into unreliable model regions.</li>
+                        <li><strong>Return-Conditioned Supervised Learning:</strong> Frame as sequence modeling (e.g., Decision Transformer) to predict actions conditioned on past states, actions, and desired future returns, bypassing explicit OOD value estimation.</li>
+                        <li><strong>Skill-Based/Hierarchical RL:</strong> Discover/extract skills (temporal abstractions) from data, then learn a high-level policy to select skills, improving planning for complex tasks.</li>
+                        <li><strong>Methods for Combinatorial Action Spaces:</strong> Structure action space (e.g., Branch Value Estimation) to evaluate subsets of actions, capturing sub-action dependencies.</li>
+                    </ul>
+                    <p>Varied algorithms mean nuanced vulnerabilities and defenses; security must be algorithm-specific.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <button class="accordion-toggle w-full text-left text-xl font-semibold text-sky-600 hover:text-sky-800 focus:outline-none flex justify-between items-center">
+                    <span>1.3. Comparative Analysis: Advantages and Limitations versus Online RL</span>
+                    <span class="accordion-icon transform transition-transform duration-300">&#9660;</span>
+                </button>
+                <div class="accordion-content mt-4 text-slate-700 space-y-3">
+                    <p><strong>Advantages of Offline RL:</strong></p>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li><strong>Resource Flexibility and Safety:</strong> Learns from static datasets, avoiding risky/costly online exploration. Suitable for safety-critical domains.</li>
+                        <li><strong>Simpler Architecture:</strong> Decouples data collection from training, simplifying deployment/maintenance.</li>
+                        <li><strong>Multimodal Data Collection:</strong> Can use diverse data sources (logs, human demos).</li>
+                    </ul>
+                    <p><strong>Limitations of Offline RL:</strong></p>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li><strong>Dataset Richness Dependency:</strong> Performance capped by data quality/coverage.</li>
+                        <li><strong>Overestimation Risk and OOD Generalization:</strong> Extrapolation error due to distributional shift is a key challenge.</li>
+                        <li><strong>Policy Evaluation Challenges:</strong> Hard to evaluate policy quality from offline data (OPE).</li>
+                        <li><strong>Limited Adaptability to Non-Stationarity:</strong> Static policies don't adapt to changing environments.</li>
+                        <li><strong>Scalability to Complex Environments:</strong> May struggle with vast state/action spaces if data is insufficient.</li>
+                    </ul>
+                    <p>Offline RL's reliance on a fixed dataset makes data poisoning attacks particularly potent and persistent.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <button class="accordion-toggle w-full text-left text-xl font-semibold text-sky-600 hover:text-sky-800 focus:outline-none flex justify-between items-center">
+                    <span>1.4. Inherent Challenges: Distributional Shift, OOD Generalization, and Constraint Conflicts</span>
+                    <span class="accordion-icon transform transition-transform duration-300">&#9660;</span>
+                </button>
+                <div class="accordion-content mt-4 text-slate-700 space-y-3">
+                    <p><strong>Distributional Shift and OOD Generalization:</strong> The learned policy ($\pi$) induces different state-action distributions than the behavior policy ($\pi_{\beta}$) that generated data. This leads to unreliable value estimates for OOD actions and extrapolation error (overestimation). This is a core vulnerability, as attackers can push models into OOD regions where behavior is unpredictable. Conservative mechanisms can be subverted if "in-distribution" is defined by compromised data.</p>
+                    <p><strong>Constraint Conflicts in Mixed-Quality Datasets:</strong> Datasets often contain mixed-quality data from various policies. Conflicting actions for similar states challenge methods that treat all data equally or apply uniform constraints. This can lead to overly conservative or poorly performing averaged policies. Attackers can subtly poison transitions (e.g., inflate rewards for malicious actions) to corrupt the "stitching" of good behaviors, embedding malicious sub-behaviors.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="threats" class="content-section space-y-6">
+            <h2 class="text-3xl font-bold text-sky-700 mb-6">2. The Landscape of Cyberattacks on Offline RL Models</h2>
+            <p class="mb-6 text-lg text-slate-700">Offline RL's reliance on static datasets and challenges with out-of-distribution generalization make it vulnerable to various cyberattacks. This section explores these threats, including data poisoning, backdoor attacks, adversarial evasion, and model extraction, detailing their mechanisms and impact on learned policies. Understanding these vulnerabilities is the first step towards building secure offline RL systems.</p>
+            
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-2xl font-semibold text-sky-600 mb-4">Overview of Cyberattack Categories</h3>
+                <div class="chart-container">
+                    <canvas id="attacksChart"></canvas>
+                </div>
+                <p class="mt-4 text-sm text-slate-600">This chart illustrates the primary categories of cyberattacks targeting Offline RL models, reflecting the diverse ways adversaries can compromise these systems.</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <button class="accordion-toggle w-full text-left text-xl font-semibold text-sky-600 hover:text-sky-800 focus:outline-none flex justify-between items-center">
+                    <span>2.1. Data Poisoning Attacks</span>
+                    <span class="accordion-icon transform transition-transform duration-300">&#9660;</span>
+                </button>
+                <div class="accordion-content mt-4 text-slate-700 space-y-3">
+                    <p>Target the training dataset by injecting/modifying transitions (state, action, reward, next_state) to alter the learned policy. Since offline RL learns exclusively from this fixed dataset, poisoned data has a direct, persistent impact.</p>
+                    <p><strong>Reward Poisoning:</strong> Manipulating reward signals ($r$). Example: Policy Contrast Attack (PCA) makes low-performing policies seem high-performing (and vice-versa) by perturbing rewards, effective against BC, CQL, IQL. Exploits agent's goal to maximize reward.</p>
+                    <p><strong>Broader Data Corruption:</strong> Noise/errors in states, actions, rewards, or dynamics (natural or malicious). Can be hard to distinguish from deliberate poisoning if crafted to mimic natural noise.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <button class="accordion-toggle w-full text-left text-xl font-semibold text-sky-600 hover:text-sky-800 focus:outline-none flex justify-between items-center">
+                    <span>2.2. Backdoor (Trojan) Attacks</span>
+                    <span class="accordion-icon transform transition-transform duration-300">&#9660;</span>
+                </button>
+                <div class="accordion-content mt-4 text-slate-700 space-y-3">
+                    <p>Inject hidden malicious functionality during training. Model behaves normally until a "trigger" in the input activates undesirable behavior. Implanted via dataset poisoning (triggered state + malicious action + manipulated reward).</p>
+                    <p>Types: Policy-level (manipulate long-term objectives) and Action-level (cause specific detrimental actions).</p>
+                    <p>Example: BAFFLE trains a weak agent to find suboptimal actions, then creates poisoned transitions (trigger + suboptimal action + high reward). Effective against BCQ, CQL, IQL, AWAC, TD3+BC. UNIDOOR framework offers insights for action-level backdoors (state/action tampering, reward hacking).</p>
+                    <p>Danger: Stealthy, persistent. Fine-tuning on clean data is often ineffective. Action tampering is crucial for continuous action spaces.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <button class="accordion-toggle w-full text-left text-xl font-semibold text-sky-600 hover:text-sky-800 focus:outline-none flex justify-between items-center">
+                    <span>2.3. Adversarial Evasion Attacks (Test-Time Perturbations)</span>
+                    <span class="accordion-icon transform transition-transform duration-300">&#9660;</span>
+                </button>
+                <div class="accordion-content mt-4 text-slate-700 space-y-3">
+                    <p>Target a trained model at deployment by adding small, often imperceptible perturbations to inputs, causing misbehavior.</p>
+                    <p><strong>Perturbing Observations:</strong>
+                        <ul class="list-disc list-inside space-y-1 pl-4">
+                            <li>Random Attack: Add random noise.</li>
+                            <li>Critic Attack: Perturb state to minimize Q-value for policy's action at perturbed state.</li>
+                            <li>Robust Critic Attack: Uses a higher-quality Q-function for stronger perturbations.</li>
+                            <li>Actor Attack: Perturb state to maximize divergence in policy output.</li>
+                        </ul>
+                        Exploits non-robustness/fragility of learned functions (policy $\pi$, Q-functions). Conservative offline RL might create brittle decision boundaries.
+                    </p>
+                    <p><strong>Perturbing Actions:</strong> Alter the agent's chosen action $a$ to $a'$ before execution. Offline RL models may be more susceptible than online RL. Training with action-perturbed datasets doesn't guarantee robustness. This is a "last mile" vulnerability.</p>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <button class="accordion-toggle w-full text-left text-xl font-semibold text-sky-600 hover:text-sky-800 focus:outline-none flex justify-between items-center">
+                    <span>2.4. Model Extraction Attacks</span>
+                    <span class="accordion-icon transform transition-transform duration-300">&#9660;</span>
+                </button>
+                <div class="accordion-content mt-4 text-slate-700 space-y-3">
+                    <p>Steal intellectual property by creating a surrogate model replicating the victim policy or value function. Typically involves querying the victim model (black-box) and using input-output data to train the surrogate.</p>
+                    <p>A two-phase algorithm:
+                        <ol class="list-decimal list-inside space-y-1 pl-4">
+                            <li>Offline Phase: Use side-channel info (reward/dynamics knowledge) to identify candidate controllers.</li>
+                            <li>Online Phase: Observe victim controller's input-output behavior to refine candidates.</li>
+                        </ol>
+                        For offline RL agents deployed as services (e.g., planning API), this is a threat. "Online phase" might involve querying with states from original/synthetic datasets. Extracting the Q-function can be highly detrimental as it reveals internal utility understanding.
+                    </p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-semibold text-sky-600 mb-3">Table 1: Taxonomy of Cyberattacks on Offline RL Models</h3>
+                <div class="table-responsive">
+                    <table class="min-w-full divide-y divide-slate-200 border border-slate-300">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Attack Category</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Specific Attack Type</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Primary Target</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Core Mechanism</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-slate-200">
+                            <tr><td class="px-4 py-3">Data Poisoning</td><td class="px-4 py-3">Reward Poisoning (general)</td><td class="px-4 py-3">Training Dataset Rewards</td><td class="px-4 py-3">Manipulate reward values</td></tr>
+                            <tr><td class="px-4 py-3">Data Poisoning</td><td class="px-4 py-3">Policy Contrast Attack (PCA)</td><td class="px-4 py-3">Training Dataset Rewards</td><td class="px-4 py-3">Make bad policies look good & vice-versa</td></tr>
+                            <tr><td class="px-4 py-3">Data Poisoning</td><td class="px-4 py-3">General Data Corruption</td><td class="px-4 py-3">Training Dataset Transitions</td><td class="px-4 py-3">Introduce noise/errors</td></tr>
+                            <tr><td class="px-4 py-3">Backdoor (Trojan)</td><td class="px-4 py-3">BAFFLE</td><td class="px-4 py-3">Training Dataset Transitions</td><td class="px-4 py-3">Embed trigger-suboptimal action association</td></tr>
+                            <tr><td class="px-4 py-3">Backdoor (Trojan)</td><td class="px-4 py-3">UNIDOOR-like (Action-Level)</td><td class="px-4 py-3">Training Dataset Transitions</td><td class="px-4 py-3">Embed trigger-target action association</td></tr>
+                            <tr><td class="px-4 py-3">Evasion (Test-Time)</td><td class="px-4 py-3">Observation Perturbation</td><td class="px-4 py-3">Test-Time State Observations</td><td class="px-4 py-3">Add small noise to input observation</td></tr>
+                            <tr><td class="px-4 py-3">Evasion (Test-Time)</td><td class="px-4 py-3">Action Perturbation</td><td class="px-4 py-3">Test-Time Agent Actions</td><td class="px-4 py-3">Alter chosen action before execution</td></tr>
+                            <tr><td class="px-4 py-3">Model Extraction</td><td class="px-4 py-3">Policy/Value Function Theft</td><td class="px-4 py-3">Deployed Policy/Value Function</td><td class="px-4 py-3">Query target & train surrogate</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="defenses" class="content-section space-y-6">
+            <h2 class="text-3xl font-bold text-sky-700 mb-6">3. Protective Strategies and Defense Mechanisms for Offline RL</h2>
+            <p class="mb-6 text-lg text-slate-700">Addressing cyber threats in Offline RL requires a multi-faceted defense approach. This section outlines strategies including designing robust algorithms, countering data poisoning and backdoors, defending against evasion attacks, and mitigating model extraction. These mechanisms aim to enhance the resilience and trustworthiness of offline RL systems when faced with adversarial actions.</p>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-2xl font-semibold text-sky-600 mb-4">Overview of Defense Strategy Categories</h3>
+                <div class="chart-container">
+                    <canvas id="defensesChart"></canvas>
+                </div>
+                <p class="mt-4 text-sm text-slate-600">This chart presents the main categories of defense strategies employed to protect Offline RL models against various cyber threats.</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <button class="accordion-toggle w-full text-left text-xl font-semibold text-sky-600 hover:text-sky-800 focus:outline-none flex justify-between items-center">
+                    <span>3.1. Designing Robust Offline RL Algorithms</span>
+                    <span class="accordion-icon transform transition-transform duration-300">&#9660;</span>
+                </button>
+                <div class="accordion-content mt-4 text-slate-700 space-y-3">
+                    <p>Developing algorithms intrinsically resilient to data imperfections and manipulations.</p>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><strong>Mitigating Data Corruption (e.g., TRACER):</strong> Models corruptions as uncertainty in action-value function using variational Bayesian inference. Entropy-based uncertainty measure weights samples, down-weighting corrupted ones.</li>
+                        <li><strong>Conservative Smoothing and Regularization (e.g., RORL):</strong> Balances robustness to input changes and conservatism. Applies regularization to policy/value function near dataset support and conservative value estimation for in-distribution states.</li>
+                        <li><strong>Addressing Data Heteroskedasticity (e.g., CQL(ReDS)):</strong> Re-weights data in CQL to approximate support constraint, allowing more deviation where behavior policy is rich/varied, more restrictive where narrow/suboptimal.</li>
+                        <li><strong>Leveraging Sequence Modeling (e.g., Robust Decision Transformer - RDT):</strong> Enhances Decision Transformer with embedding dropout, Gaussian weighted learning, iterative data correction for robustness against data corruption.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <button class="accordion-toggle w-full text-left text-xl font-semibold text-sky-600 hover:text-sky-800 focus:outline-none flex justify-between items-center">
+                    <span>3.2. Countering Data Poisoning and Backdoor Attacks</span>
+                    <span class="accordion-icon transform transition-transform duration-300">&#9660;</span>
+                </button>
+                <div class="accordion-content mt-4 text-slate-700 space-y-3">
+                    <p>Involves pre-processing data or adapting learning to be less susceptible.</p>
+                    <p><strong>Data Sanitization and Anomaly Detection:</strong>
+                        <ul class="list-disc list-inside space-y-1 pl-4">
+                            <li><strong>OIL-AD:</strong> Unsupervised, learns normal trajectories (action optimality, sequential association) to detect anomalies.</li>
+                            <li><strong>RLAD:</strong> Integrates anomaly detection (e.g., Deep SVDD) into RL training; anomaly scores adjust sample weights.</li>
+                        </ul>
+                        Effectiveness depends on accurately modeling "normal" behavior and detecting subtle malicious patterns.
+                    </p>
+                    <p><strong>Backdoor Shielding and Mitigation:</strong>
+                        <ul class="list-disc list-inside space-y-1 pl-4">
+                            <li><strong>Ineffectiveness of Simple Fine-tuning:</strong> Fine-tuning on clean data often fails to remove backdoors (e.g., BAFFLE).</li>
+                            <li><strong>SHINE (for DRL):</strong> Identifies triggers via policy explanation, then uses specialized policy retraining. Applicability to offline RL needs study.</li>
+                        </ul>
+                        Requires targeted "unlearning" or repair mechanisms.
+                    </p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <button class="accordion-toggle w-full text-left text-xl font-semibold text-sky-600 hover:text-sky-800 focus:outline-none flex justify-between items-center">
+                    <span>3.3. Defending Against Adversarial Evasion Attacks</span>
+                    <span class="accordion-icon transform transition-transform duration-300">&#9660;</span>
+                </button>
+                <div class="accordion-content mt-4 text-slate-700 space-y-3">
+                    <p>Making deployed policy/value functions robust to small input perturbations.</p>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><strong>Actor and Critic Defenses:</strong> Augment learning objectives with regularization terms (penalize differences in Q-values/actions for clean vs. perturbed inputs).</li>
+                        <li><strong>RORL's Conservative Smoothing:</strong> Also helps against observation perturbations.</li>
+                        <li><strong>Adversarial Training (General):</strong> Augment training with adversarial examples. For action perturbations in offline RL, simple action-perturbed datasets may be insufficient.</li>
+                        <li><strong>Defense via MSE Regularization:</strong> Minimize MSE between outputs for clean vs. adversarial examples.</li>
+                    </ul>
+                    <p>Principle: Proactive robustification during training. Action perturbation defense is a special challenge.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <button class="accordion-toggle w-full text-left text-xl font-semibold text-sky-600 hover:text-sky-800 focus:outline-none flex justify-between items-center">
+                    <span>3.4. Mitigating Model Extraction Threats</span>
+                    <span class="accordion-icon transform transition-transform duration-300">&#9660;</span>
+                </button>
+                <div class="accordion-content mt-4 text-slate-700 space-y-3">
+                    <p>Limited dedicated research for offline RL. General ML strategies offer starting points:</p>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><strong>Adversarial Training & Defensive Distillation:</strong> Make model harder to query accurately.</li>
+                        <li><strong>Model Obfuscation:</strong> Make internal workings/outputs harder to replicate.</li>
+                        <li><strong>Gradient-based Optimization (e.g., GRO):</strong> Minimize target loss while maximizing attacker's surrogate loss.</li>
+                        <li><strong>Anti-Exploration and OOD Detection (e.g., MoMo):</strong> Terminate excessively OOD synthetic rollouts, potentially making OOD queries less informative.</li>
+                    </ul>
+                    <p>Most defenses degrade query information or increase query cost. Public availability of training datasets (e.g., D4RL) makes extraction easier for offline RL models.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-semibold text-sky-600 mb-3">Table 2: Overview of Defense Strategies for Offline RL</h3>
+                <div class="table-responsive">
+                    <table class="min-w-full divide-y divide-slate-200 border border-slate-300">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Defense Category</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Method/Technique</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Attack(s) Addressed</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Core Mechanism</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-slate-200">
+                            <tr><td class="px-4 py-3">Robust Algorithm Design</td><td class="px-4 py-3">TRACER</td><td class="px-4 py-3">Data Corruption</td><td class="px-4 py-3">Bayesian uncertainty modeling, sample re-weighting</td></tr>
+                            <tr><td class="px-4 py-3">Robust Algorithm Design</td><td class="px-4 py-3">RORL</td><td class="px-4 py-3">Adversarial Observation Perturbations</td><td class="px-4 py-3">Conservative smoothing, regularization</td></tr>
+                            <tr><td class="px-4 py-3">Robust Algorithm Design</td><td class="px-4 py-3">CQL(ReDS)</td><td class="px-4 py-3">Suboptimal learning (heteroskedasticity)</td><td class="px-4 py-3">Data re-weighting, adaptive conservatism</td></tr>
+                            <tr><td class="px-4 py-3">Robust Algorithm Design</td><td class="px-4 py-3">Robust Decision Transformer (RDT)</td><td class="px-4 py-3">Data Corruption</td><td class="px-4 py-3">Dropout, weighted learning, data correction</td></tr>
+                            <tr><td class="px-4 py-3">Data Sanitization</td><td class="px-4 py-3">OIL-AD</td><td class="px-4 py-3">Anomalous/Poisoned Trajectories</td><td class="px-4 py-3">Learn normal behavior to detect deviations</td></tr>
+                            <tr><td class="px-4 py-3">Data Sanitization</td><td class="px-4 py-3">RLAD</td><td class="px-4 py-3">OOD/Anomalous Data</td><td class="px-4 py-3">Anomaly scoring, sample weight adjustment</td></tr>
+                            <tr><td class="px-4 py-3">Backdoor Mitigation</td><td class="px-4 py-3">SHINE (for DRL)</td><td class="px-4 py-3">Backdoor Attacks</td><td class="px-4 py-3">Trigger ID, targeted policy retraining</td></tr>
+                            <tr><td class="px-4 py-3">Evasion Defense</td><td class="px-4 py-3">Actor/Critic Defenses</td><td class="px-4 py-3">Adversarial Observation Perturbations</td><td class="px-4 py-3">Regularization with adversarial examples</td></tr>
+                            <tr><td class="px-4 py-3">Evasion Defense</td><td class="px-4 py-3">Adversarial Training</td><td class="px-4 py-3">Adversarial Perturbations</td><td class="px-4 py-3">Augment training with adversarial examples</td></tr>
+                            <tr><td class="px-4 py-3">Model Extraction Defense</td><td class="px-4 py-3">General ML techniques</td><td class="px-4 py-3">Model Theft</td><td class="px-4 py-3">Degrade query info, increase query cost</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="research" class="content-section space-y-6">
+            <h2 class="text-3xl font-bold text-sky-700 mb-6">4. Identifying Research Gaps and Charting Future Directions</h2>
+            <p class="mb-6 text-lg text-slate-700">Despite progress, significant research gaps remain in securing Offline RL. This section highlights key areas needing further investigation, from fundamental algorithmic enhancements with security implications to specific security-centric research opportunities. Addressing these gaps is crucial for building trustworthy and widely adoptable offline RL systems.</p>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <button class="accordion-toggle w-full text-left text-xl font-semibold text-sky-600 hover:text-sky-800 focus:outline-none flex justify-between items-center">
+                    <span>4.1. Fundamental Offline RL Enhancements (with Security Implications)</span>
+                    <span class="accordion-icon transform transition-transform duration-300">&#9660;</span>
+                </button>
+                <div class="accordion-content mt-4 text-slate-700 space-y-3">
+                    <p>Advances in core offline RL can boost security:</p>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><strong>Improved Out-of-Distribution (OOD) Generalization:</strong> Better generalization makes models inherently more robust by reliably assessing/acting in unfamiliar situations, making OOD exploitation harder.</li>
+                        <li><strong>Robust Learning from Imperfect Datasets:</strong> Algorithms effective with suboptimal, mixed-quality, or noisy data are less susceptible to subtle poisoning mimicking natural imperfections.</li>
+                        <li><strong>Scalability and Complex Action Spaces:</strong> Securely scaling to large state/action spaces is vital as complexity can expand attack surfaces. Security implications of skill learning or combinatorial action methods need study.</li>
+                    </ul>
+                    <p>Progress here makes models more stable and predictable, harder targets for adversaries.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <button class="accordion-toggle w-full text-left text-xl font-semibold text-sky-600 hover:text-sky-800 focus:outline-none flex justify-between items-center">
+                    <span>4.2. Security-Centric Research Opportunities (Key Gap Areas)</span>
+                    <span class="accordion-icon transform transition-transform duration-300">&#9660;</span>
+                </button>
+                <div class="accordion-content mt-4 text-slate-700 space-y-3">
+                    <p>Specific security research needs:</p>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><strong class="text-sky-700">Advanced and Adaptive Attack Vectors:</strong> Explore sophisticated, adaptive attacks targeting specific components (e.g., "stitching" process, skill extraction) or changing tactics based on defenses.</li>
+                        <li><strong class="text-sky-700">Holistic and Verifiable Defense Frameworks:</strong> Move beyond point solutions to integrated defenses (data validation, robust training, runtime monitoring, policy repair) with provable/certified robustness.</li>
+                        <li><strong class="text-sky-700">Robustness Benchmarking and Standardized Evaluation:</strong> Develop common benchmarks, datasets, and metrics for fair comparison of defenses and vulnerability assessment.</li>
+                        <li><strong class="text-sky-700">Theoretical Underpinnings of Vulnerabilities:</strong> Deepen theoretical understanding of why certain choices lead to specific weaknesses (e.g., conditions for adversarial examples in offline RL).</li>
+                        <li><strong class="text-sky-700">Security of Emerging Offline RL Paradigms:</strong> Investigate vulnerabilities in skill-based models, Transformer-based architectures (DT, RDT), and methods for complex action spaces.</li>
+                        <li><strong class="text-sky-700">Dedicated Model Extraction Defenses for Offline RL:</strong> Develop defenses considering public datasets and the role of value functions.</li>
+                        <li><strong class="text-sky-700">Robustness Against Action Perturbations:</strong> Novel approaches for resilience against test-time action manipulation.</li>
+                        <li><strong class="text-sky-700">Universal and Black-Box Security Solutions:</strong> Develop defenses that are broadly applicable without white-box access to attacker strategy or model architecture.</li>
+                        <li><strong class="text-sky-700">Adaptation of General DRL Security for Offline RL:</strong> Explicitly investigate and adapt general DRL security (e.g., UNIDOOR, SHINE) for offline constraints (no environment interaction during training).</li>
+                    </ul>
+                    <p>The inability to interact during training emphasizes proactive defenses (robust algorithms, data sanitization) and the need for certified robustness from static data.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-2xl font-semibold text-sky-700 mb-4">5. Conclusion and Strategic Outlook</h3>
+                 <button class="accordion-toggle w-full text-left text-xl font-semibold text-sky-600 hover:text-sky-800 focus:outline-none flex justify-between items-center">
+                    <span>5.1. Synthesis of the Current Security Posture of Offline RL</span>
+                    <span class="accordion-icon transform transition-transform duration-300">&#9660;</span>
+                </button>
+                <div class="accordion-content mt-4 text-slate-700 space-y-3">
+                    <p>Offline RL offers promise by leveraging pre-existing datasets but its reliance on static data and lack of live interaction during training create distinct vulnerabilities. Distributional shift and OOD generalization are key challenges and exploitable weaknesses.</p>
+                    <p><strong>Primary Attack Vectors:</strong> Data Poisoning (esp. reward poisoning), Backdoor Attacks (e.g., BAFFLE), Adversarial Evasion (observation/action perturbations), Model Extraction.</p>
+                    <p>Emerging defenses (TRACER, RORL, OIL-AD, RLAD) are promising but often nascent or not comprehensively evaluated against sophisticated threats in the offline context. Security posture: cautious optimism mixed with significant concern due to unaddressed vulnerabilities.</p>
+                </div>
+            </div>
+             <div class="bg-white p-6 rounded-lg shadow-md">
+                <button class="accordion-toggle w-full text-left text-xl font-semibold text-sky-600 hover:text-sky-800 focus:outline-none flex justify-between items-center">
+                    <span>5.2. Reinforcing the Imperative for Secure and Robust Offline RL</span>
+                    <span class="accordion-icon transform transition-transform duration-300">&#9660;</span>
+                </button>
+                <div class="accordion-content mt-4 text-slate-700 space-y-3">
+                    <p>Secure and robust offline RL is critical for deployment in safety-critical applications (autonomous driving, robotics, finance). Failures can have catastrophic consequences (financial loss, physical harm). Trustworthiness is a prerequisite for responsible adoption.</p>
+                </div>
+            </div>
+             <div class="bg-white p-6 rounded-lg shadow-md">
+                <button class="accordion-toggle w-full text-left text-xl font-semibold text-sky-600 hover:text-sky-800 focus:outline-none flex justify-between items-center">
+                    <span>5.3. A Call to the Research Community</span>
+                    <span class="accordion-icon transform transition-transform duration-300">&#9660;</span>
+                </button>
+                <div class="accordion-content mt-4 text-slate-700 space-y-3">
+                    <p>Addressing vulnerabilities requires concerted effort:</p>
+                    <ol class="list-decimal list-inside space-y-2">
+                        <li><strong>Advancing Fundamental Offline RL:</strong> Improve OOD generalization, learning from imperfect data, scalability.</li>
+                        <li><strong>Developing Sophisticated Security Frameworks:</strong> Holistic defenses, certified robustness.</li>
+                        <li><strong>Understanding and Modeling Advanced Threats:</strong> Proactive investigation of complex, adaptive attacks.</li>
+                        <li><strong>Establishing Rigorous Evaluation Standards:</strong> Standardized benchmarks, attack libraries, metrics.</li>
+                        <li><strong>Fostering Interdisciplinary Collaboration:</strong> RL, cybersecurity, formal methods, domain experts.</li>
+                    </ol>
+                    <p>Goal: Cultivate a "security-first" mindset. Trustworthy offline RL requires solving learning from static data and ensuring resilience against intelligent adversaries for safe, responsible technology realization.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-sky-700 text-white mt-12 py-8 text-center">
+        <p class="text-sm">&copy; 2024 Interactive Report on Offline RL Security. Based on research insights.</p>
+        <p class="text-xs mt-1">This SPA is for illustrative and educational purposes.</p>
+    </footer>
+
+<script>
+    const navButtons = document.querySelectorAll('.nav-btn');
+    const contentSections = document.querySelectorAll('.content-section');
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    function showSection(targetId) {
+        contentSections.forEach(section => {
+            if (section.id === targetId) {
+                section.classList.add('active');
+            } else {
+                section.classList.remove('active');
+            }
+        });
+        // Highlight active nav button
+        navButtons.forEach(btn => {
+            if (btn.dataset.target === targetId) {
+                btn.classList.add('bg-sky-800', 'text-white');
+                btn.classList.remove('text-sky-100', 'hover:bg-sky-600');
+            } else {
+                btn.classList.remove('bg-sky-800', 'text-white');
+                btn.classList.add('text-sky-100', 'hover:bg-sky-600');
+            }
+        });
+         if (mobileMenu.classList.contains('hidden') === false) {
+            mobileMenu.classList.add('hidden');
+        }
+        window.scrollTo(0, 0); // Scroll to top on section change
+    }
+
+    navButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetId = button.dataset.target;
+            showSection(targetId);
+        });
+    });
+
+    mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    const accordions = document.querySelectorAll('.accordion-toggle');
+    accordions.forEach(accordion => {
+        accordion.addEventListener('click', () => {
+            const content = accordion.nextElementSibling;
+            const icon = accordion.querySelector('.accordion-icon');
+            if (content.style.maxHeight && content.style.maxHeight !== '0px') {
+                content.style.maxHeight = '0px';
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                // Close other accordions in the same parent group if needed (optional)
+                // const group = accordion.closest('.space-y-6'); // or other parent
+                // if (group) {
+                //     group.querySelectorAll('.accordion-content').forEach(ac => {
+                //         if (ac !== content) {
+                //            ac.style.maxHeight = '0px';
+                //            ac.previousElementSibling.querySelector('.accordion-icon').style.transform = 'rotate(0deg)';
+                //         }
+                //     });
+                // }
+                content.style.maxHeight = content.scrollHeight + 'px';
+                icon.style.transform = 'rotate(180deg)';
+            }
+        });
+    });
+
+    // Initialize first section
+    if (contentSections.length > 0) {
+        showSection(contentSections[0].id);
+    }
+    
+    // Chart.js configuration
+    Chart.defaults.font.family = 'Inter, sans-serif';
+    Chart.defaults.color = '#334155'; // slate-700
+
+    function createBarChart(canvasId, label, labels, data, backgroundColor, borderColor) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: label,
+                    data: data,
+                    backgroundColor: backgroundColor,
+                    borderColor: borderColor,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#475569' }, // slate-600
+                        grid: { color: '#e2e8f0' } // slate-200
+                    },
+                    x: {
+                        ticks: { color: '#475569' },
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: { color: '#334155' } // slate-700
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    // For this qualitative chart, we might not want to show "Count"
+                                    // label += context.parsed.y; 
+                                     label = context.label; // Just show the category name in tooltip body
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                // Ensure labels are not cut off
+                layout: {
+                    padding: {
+                        bottom: 10 
+                    }
+                },
+                // Wrap long labels (Chart.js doesn't do this automatically for axis labels well)
+                // This is a common issue, often handled by preprocessing labels or custom plugins
+                // For simplicity, we'll keep labels short or rely on Chart.js defaults.
+                // For more complex label wrapping:
+                // afterFit: function(scaleInstance) { scaleInstance.width = 100; /* or some other value */ } in xAxes options
+            }
+        });
+    }
+    
+    // Data for charts (illustrative counts based on sub-sections/major points in the report)
+    const attacksData = {
+        labels: ['Data Poisoning', 'Backdoor Attacks', 'Evasion Attacks', 'Model Extraction'],
+        data: [3, 2, 3, 1] // Illustrative: # of major sub-types or focus areas
+    };
+    const defensesData = {
+        labels: ['Robust Algorithms', 'Data Sanitization', 'Backdoor Mitigation', 'Evasion Defense', 'Model Extraction Defense'],
+        data: [4, 2, 2, 3, 1] // Illustrative
+    };
+
+    // Create charts once their respective sections are potentially visible
+    // A better way would be to initialize them when the section becomes active for the first time.
+    // For simplicity, initializing them on load.
+    if (document.getElementById('attacksChart')) {
+         createBarChart('attacksChart', 
+            'Attack Categories', 
+            attacksData.labels, 
+            attacksData.data,
+            ['rgba(239, 68, 68, 0.6)', 'rgba(249, 115, 22, 0.6)', 'rgba(234, 179, 8, 0.6)', 'rgba(132, 204, 22, 0.6)'],
+            ['rgb(239, 68, 68)', 'rgb(249, 115, 22)', 'rgb(234, 179, 8)', 'rgb(132, 204, 22)']
+        );
+    }
+
+   if (document.getElementById('defensesChart')) {
+        createBarChart('defensesChart', 
+            'Defense Strategy Categories', 
+            defensesData.labels, 
+            defensesData.data,
+            ['rgba(59, 130, 246, 0.6)', 'rgba(16, 185, 129, 0.6)', 'rgba(99, 102, 241, 0.6)', 'rgba(217, 70, 239, 0.6)', 'rgba(107, 114, 128, 0.6)'],
+            ['rgb(59, 130, 246)', 'rgb(16, 185, 129)', 'rgb(99, 102, 241)', 'rgb(217, 70, 239)', 'rgb(107, 114, 128)']
+        );
+    }
+
+</script>
+
+</body>
+</html>
